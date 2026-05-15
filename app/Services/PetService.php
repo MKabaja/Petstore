@@ -12,6 +12,7 @@ use App\Exceptions\PetStoreUnavailableException;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\Response;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 
 /**
@@ -25,7 +26,7 @@ use Illuminate\Support\Facades\Http;
  * }
  * @phpstan-type PetApiResponse array{
  *   id: int,
- *   name: string,
+ *   name?: string|null,
  *   status: string,
  *   category?: array{id: int, name: string},
  *   tags?: array<array{id: int, name: string}>,
@@ -42,38 +43,42 @@ use Illuminate\Support\Facades\Http;
  */
 final class PetService
 {
+    private const CACHE_PREFIX = 'pets.';
+
     /**
      * @return PetData[]
      */
     public function findByStatus(string $status): array
     {
-        try {
-            $response = $this->petStoreClient()->get('/pet/findByStatus', [
-                'status' => $status,
-            ]);
+        return Cache::remember(
+            self::CACHE_PREFIX.$status,
+            config('petstore.cache_ttl'),
+            fn () => $this->execute(function () use ($status) {
 
-            $this->resolveError($response);
+                $response = $this->petStoreClient()->get('/pet/findByStatus', [
+                    'status' => $status,
+                ]);
 
-            return array_map(
-                fn (array $petData) => $this->fromApiResponse($petData),
-                $response->json(),
-            );
-        } catch (ConnectionException) {
-            throw new PetStoreUnavailableException;
-        }
+                $this->ensureSuccessfulResponse($response);
+
+                return array_map(
+                    fn (array $petData) => $this->fromApiResponse($petData),
+                    $response->json(),
+                );
+            })
+        );
+
     }
 
     public function findById(int $id): PetData
     {
-        try {
+        return $this->execute(function () use ($id) {
             $response = $this->petStoreClient()->get("/pet/{$id}");
-
-            $this->resolveError($response);
+            $this->ensureSuccessfulResponse($response);
 
             return $this->fromApiResponse($response->json());
-        } catch (ConnectionException) {
-            throw new PetStoreUnavailableException;
-        }
+        });
+
     }
 
     /**
@@ -81,15 +86,15 @@ final class PetService
      */
     public function create(array $data): PetData
     {
-        try {
-            $response = $this->petStoreClient()->post('/pet', $this->createPetPayload($data));
+        return $this->execute(function () use ($data) {
+            $response = $this->petStoreClient()->post('/pet', $this->assemblePetPayload($data));
 
-            $this->resolveError($response);
+            $this->ensureSuccessfulResponse($response);
+            $this->invalidateCache();
 
             return $this->fromApiResponse($response->json());
-        } catch (ConnectionException) {
-            throw new PetStoreUnavailableException;
-        }
+        });
+
     }
 
     /**
@@ -97,25 +102,25 @@ final class PetService
      */
     public function update(array $data): PetData
     {
-        try {
-            $response = $this->petStoreClient()->put('/pet', $this->createPetPayload($data));
+        return $this->execute(function () use ($data) {
+            $response = $this->petStoreClient()->put('/pet', $this->assemblePetPayload($data));
 
-            $this->resolveError($response);
+            $this->ensureSuccessfulResponse($response);
+            $this->invalidateCache();
 
             return $this->fromApiResponse($response->json());
-        } catch (ConnectionException) {
-            throw new PetStoreUnavailableException;
-        }
+        });
+
     }
 
     public function destroy(int $id): void
     {
-        try {
+        $this->execute(function () use ($id) {
             $response = $this->petStoreClient()->delete("/pet/{$id}");
-            $this->resolveError($response);
-        } catch (ConnectionException) {
-            throw new PetStoreUnavailableException;
-        }
+            $this->ensureSuccessfulResponse($response);
+            $this->invalidateCache();
+        });
+
     }
 
     private function petStoreClient(): PendingRequest
@@ -135,21 +140,21 @@ final class PetService
     }
 
     /**
-     * @param  PetApiResponse  $dataFromAPI
+     * @param  PetApiResponse  $data
      */
-    private function fromApiResponse(array $dataFromAPI): PetData
+    private function fromApiResponse(array $data): PetData
     {
         return new PetData(
-            id: $dataFromAPI['id'],
-            name: $dataFromAPI['name'],
-            status: PetStatus::tryFrom($dataFromAPI['status']) ?? PetStatus::UNKNOWN,
-            categoryName: $dataFromAPI['category']['name'] ?? null,
-            tags: array_column($dataFromAPI['tags'] ?? [], 'name'),
-            photoUrls: $dataFromAPI['photoUrls'] ?? [],
+            id: $data['id'],
+            name: $data['name'] ?? '',
+            status: PetStatus::tryFrom($data['status']) ?? PetStatus::UNKNOWN,
+            categoryName: $data['category']['name'] ?? null,
+            tags: array_column($data['tags'] ?? [], 'name'),
+            photoUrls: $data['photoUrls'] ?? [],
         );
     }
 
-    private function resolveError(Response $response): void
+    private function ensureSuccessfulResponse(Response $response): void
     {
         match (true) {
             $response->notFound() => throw new PetNotFoundException,
@@ -163,7 +168,7 @@ final class PetService
      * @param  PetInput  $data
      * @return PetPayload
      */
-    private function createPetPayload(array $data): array
+    private function assemblePetPayload(array $data): array
     {
         $payload = [
             'name' => $data['name'],
@@ -178,5 +183,29 @@ final class PetService
         }
 
         return $payload;
+    }
+
+    /**
+     * @template T
+     *
+     * @param  callable(): T  $action
+     * @return T
+     */
+    private function execute(callable $action): mixed
+    {
+        try {
+            return $action();
+
+        } catch (ConnectionException) {
+            throw new PetStoreUnavailableException;
+        }
+
+    }
+
+    private function invalidateCache(): void
+    {
+        foreach (PetStatus::cases() as $status) {
+            Cache::forget(self::CACHE_PREFIX.$status->value);
+        }
     }
 }
