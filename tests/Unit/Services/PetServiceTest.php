@@ -38,6 +38,7 @@ function expectedPetData(): PetData
         photoUrls: ['https://example.com/dog.jpg'],
     );
 }
+
 function petInput(): array
 {
     return [
@@ -114,7 +115,7 @@ describe('findById', function () {
             '*/pet/*' => Http::response([], 404),
         ]);
 
-        expect(fn () => petService()->findById(9999999999999))
+        expect(fn () => petService()->findById(99999))
             ->toThrow(PetNotFoundException::class);
     });
 
@@ -189,7 +190,7 @@ describe('update', function () {
             '*/pet' => Http::response([], 404),
         ]);
 
-        expect(fn () => petService()->update([...petInput(), 'id' => 9999999999999]))
+        expect(fn () => petService()->update([...petInput(), 'id' => 99999]))
             ->toThrow(PetNotFoundException::class);
     });
 
@@ -230,7 +231,7 @@ describe('destroy', function () {
             '*/pet/*' => Http::response([], 404),
         ]);
 
-        expect(fn () => petService()->destroy(9999999999999))
+        expect(fn () => petService()->destroy(99999))
             ->toThrow(PetNotFoundException::class);
     });
 
