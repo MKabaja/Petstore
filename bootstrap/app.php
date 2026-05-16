@@ -20,11 +20,19 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->render(function (PetStoreUnavailableException $e, Request $request) {
+            if ($request->expectsJson()) {
+                return response()->json(['error' => $e->getMessage()], 503);
+            }
+
             return redirect()
                 ->back()
                 ->with('error', $e->getMessage());
         });
         $exceptions->render(function (PetStoreApiException $e, Request $request) {
+            if ($request->expectsJson()) {
+                return response()->json(['error' => $e->getMessage()], 500);
+            }
+
             return redirect()
                 ->back()
                 ->with('error', $e->getMessage());
