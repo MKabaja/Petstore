@@ -9,6 +9,7 @@ enum PetStoreError: string
     case NOT_FOUND = 'Pet not found.';
     case UNAVAILABLE = 'Service unavailable. Please try again later.';
     case INVALID_DATA = 'Invalid data provided.';
-    case INVALID_METHOD = 'Invalid API request.';
+    case CLIENT_ERROR = 'Invalid API request.';
+    // case INVALID_RESPONSE = 'Invalid response from API.';
 
 }

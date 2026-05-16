@@ -8,8 +8,8 @@ use App\Enums\PetStoreError;
 
 final class PetStoreApiException extends PetStoreException
 {
-    public function __construct()
+    public function __construct(PetStoreError $error = PetStoreError::CLIENT_ERROR)
     {
-        parent::__construct(PetStoreError::INVALID_METHOD);
+        parent::__construct($error);
     }
 }
