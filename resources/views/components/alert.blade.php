@@ -7,6 +7,6 @@ $classes = match($type) {
 };
 @endphp
 
-<span class="mb-4 rounded border px-4 py-2 {{ $classes }}">
+<span data-alert class="fixed left-1/2 top-4 -translate-x-1/2 z-50 rounded border px-4 py-2 transition-all duration-200 {{ $classes }}">
     {{ $message }}
 </span>

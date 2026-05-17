@@ -23,6 +23,7 @@ class PetController extends Controller
 
         $status = $validated['status'] ?? 'available';
         $tag = $validated['tag'] ?? null;
+
         $page = $request->integer('page', 1);
 
         $pets = $this->petService->findByStatus($status);
@@ -35,7 +36,13 @@ class PetController extends Controller
             ->values()
             ->forPage($page, 20);
 
-        return view('pets.index', ['pets' => $paginatedPets]);
+        return view('pets.index', [
+            'pets' => $paginatedPets,
+            'status' => $status,
+            'tag' => $tag,
+            'page' => $page,
+            'total' => count($filteredPets),
+        ]);
     }
 
     public function create(): View
