@@ -41,7 +41,7 @@ use Illuminate\Support\Facades\Http;
  *   photoUrls: string[]
  * }
  */
-final class PetService
+class PetService
 {
     private const CACHE_PREFIX = 'pets.';
 
