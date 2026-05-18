@@ -21,7 +21,7 @@ class IndexPetRequest extends FormRequest
     {
         return [
             'status' => ['nullable', 'string', 'in:available,pending,sold'],
-            'tag' => ['nullable', 'string', 'max:100'],
+            'search' => ['nullable', 'string', 'max:100'],
         ];
     }
 
@@ -29,7 +29,7 @@ class IndexPetRequest extends FormRequest
     {
         return [
             'status.in' => 'Status must be: available, pending or sold.',
-            'tag.max' => 'Tag cannot exceed 100 characters.',
+            'search.max' => 'Search cannot exceed 100 characters.',
         ];
     }
 }

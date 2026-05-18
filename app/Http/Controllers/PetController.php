@@ -22,14 +22,14 @@ class PetController extends Controller
         $validated = $request->validated();
 
         $status = $validated['status'] ?? 'available';
-        $tag = $validated['tag'] ?? null;
+        $search = $validated['search'] ?? null;
 
         $page = $request->integer('page', 1);
 
         $pets = $this->petService->findByStatus($status);
 
-        $filteredPets = $tag
-            ? array_filter($pets, fn ($pet) => in_array($tag, $pet->tags))
+        $filteredPets = $search
+            ? array_filter($pets, fn ($pet) => str_contains($pet->name, $search))
             : $pets;
 
         $paginatedPets = collect($filteredPets)
@@ -39,7 +39,8 @@ class PetController extends Controller
         return view('pets.index', [
             'pets' => $paginatedPets,
             'status' => $status,
-            'tag' => $tag,
+            'search' => $search,
+
             'page' => $page,
             'total' => count($filteredPets),
         ]);

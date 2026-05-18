@@ -3,7 +3,7 @@
 @section('content')
     <form class="flex  md:flex-row flex-col gap-y-5  gap-x-5 w-full mb-20" method="GET" action="{{ route('pets.index') }}">
         <div class="flex flex-row gap-x-5 flex-1" > 
-            <x-input name="tag" placeholder="Search by tag..." :value="$tag" class="w-full"/>
+            <x-input name="search" placeholder="Search..." :value="$search" class="w-full"/>
             <x-button type="submit" variant="ghost">Search</x-button>
         </div>
         
@@ -21,14 +21,15 @@
             <x-card>
                 
                  <a class=" hover:scale-105 duration-200" href="{{ route('pets.show', $pet->id) }}">
-                    <img src="/images/placeholder.png" alt="No photo" class="md:w-30 md:h-30 w-40 object-cover rounded mx-auto">
+                    <img src="{{ $pet->photoUrls[0]?? '/images/placeholder.png' }}" onerror="this.src='/images/placeholder.png'" alt="{{ $pet->name }}" class="md:w-30 md:h-30 w-40 object-cover rounded mx-auto">
                 </a>
+                
                 <h3 class=" mx-auto text-2xl font-bold">{{ $pet->name }}</h3>
                 <span class="text-xs text-text-muted">{{ $pet->categoryName }}</span>
                 <x-badge status="{{ $pet->status->value }}"/>
-                <div class="flex flex-row gap-2 flex-wrap gap">
+                <div class="flex flex-row gap-2 flex-wrap">
                     @foreach($pet->tags as $tagName)
-                        <span class="text-xs text-text-muted bg-elevated px-2 py-0.5 rounded">{{ $tag }}</span>
+                        <span class="text-xs text-text-muted bg-elevated px-2 py-0.5 rounded">{{'# '. $tagName }}</span>
                     @endforeach
                 </div>
                 
@@ -46,7 +47,7 @@
 
 <div class="mt-12 border-t border-gray-800 pt-6 flex justify-between">
     @if($page > 1)
-        <a href="{{ route('pets.index', ['status' => $status, 'tag' => $tag, 'page' => $page - 1]) }}">← Previous</a>
+        <a href="{{ route('pets.index', ['status' => $status, 'search' => $search, 'page' => $page - 1]) }}">← Previous</a>
     @else
         <span></span>
     @endif
@@ -54,7 +55,7 @@
     <span class="text-muted">Page {{ $page }}</span>
 
     @if($page * 20 < $total)
-        <a href="{{ route('pets.index', ['status' => $status, 'tag' => $tag, 'page' => $page + 1]) }}">Next →</a>
+        <a href="{{ route('pets.index', ['status' => $status, 'search' => $search, 'page' => $page + 1]) }}">Next →</a>
     @endif
 </div>
  

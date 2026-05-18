@@ -1,4 +1,4 @@
-@props(['variant' => 'primary'])
+@props(['variant' => 'primary','href' => null])
 
 @php
 $classes = match($variant) {
@@ -8,6 +8,12 @@ $classes = match($variant) {
 };
 @endphp
 
-<button {{ $attributes->merge(['class' => "duration-200 border-border rounded px-4 py-2 $classes"]) }}>
-    {{ $slot }}
-</button>
+@if($href)
+    <a href="{{ $href }}" {{ $attributes->merge(['class' => "duration-200 border-border rounded px-4 py-2 $classes"]) }}>
+        {{ $slot }}
+    </a>
+@else
+    <button {{ $attributes->merge(['class' => "duration-200 border-border rounded px-4 py-2 $classes"]) }}>
+        {{ $slot }}
+    </button>
+@endif

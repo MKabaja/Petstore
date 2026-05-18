@@ -11,6 +11,6 @@ $classes = match($status) {
 
 @endphp
 
-<span class="w-fit mb-4 rounded-md uppercase border px-4 py-1 {{ $classes }}">
+<span {{ $attributes->merge(['class' => "w-fit mb-4 rounded-md uppercase border px-4 py-1 {$classes}"]) }}>
     {{ $status }}
 </span>
