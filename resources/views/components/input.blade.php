@@ -2,7 +2,7 @@
 
 <div class="w-full">
     @if($label)
-        <label class="block text-sm font-medium ">{{ $label }}</label>
+        <label class="block text-sm font-bold mb-2 ">{{ $label }}</label>
     @endif
 
     <input
