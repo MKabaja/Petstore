@@ -3,7 +3,7 @@
 @section('content')
 <x-card>
     <h2 class="text-3xl font-bold mb-6 text-center">Add New Pet</h2>
-    <form method="POST" action="{{ route('pets.store') }}" enctype="multipart/form-data" class="md:grid  flex flex-col md:grid-cols-2 gap-4">
+    <form method="POST" action="{{ route('pets.store') }}" class="md:grid  flex flex-col md:grid-cols-2 gap-4">
         @csrf
         <div class="col-span-1 space-y-5">
             <div class="flex flex-col gap-2">
@@ -18,37 +18,32 @@
                     <option value="sold">Sold</option>
                 </select>
             </div>
-            <div class="flex flex-col gap-2">
+            
+            <div id="tags-container" class="flex flex-col gap-2">
                 <label for="tags" class="font-semibold">Tags</label>
-                <div class="flex gap-5">
+                <div class="flex gap-5 relative">
                     <x-input name="tags" id="tags" placeholder="e.g. cute, small, friendly" class="w-full"/>
-                    <button class="border  border-border border-dotted rounded px-4 py-1 text-2xl text-center text-text-muted hover:text-text-primary duration-200 hover:border-text-secondary" >+</button>
+                    <button type="button" class="border  border-border border-dotted rounded px-4 py-1 text-2xl text-center text-text-muted hover:text-text-primary duration-200 hover:border-text-secondary" >+</button>
+                    
                 </div>
+                <p data-error class="text-error text-xs hidden"> </p>
+                <ul id="tags-list" class="grid grid-cols-5 gap-1"></ul>
             </div>
-            <ul id="tags-list" class="grid grid-cols-5 gap-1" data-tags="[]"></ul>
         </div>
-                
-            <div class="flex flex-col gap-2">
-                <label for="photos" class="font-semibold">Photos</label>
-                <div class="flex gap-5">
-                    <x-input name="photos" id="photos" placeholder="http://" class="w-full"/>
-                    <button class="border  border-border border-dotted rounded px-4 py-1 text-2xl text-center text-text-muted hover:text-text-primary duration-200 hover:border-text-secondary" >+</button>
-                </div>
-                <ul id="photos-list" class="mt-2 flex flex-col gap-2 text-xs px-2" data-photo-urls="[]"></ul>
-                   
-                
+        <div id="photos-container" class="flex flex-col gap-2">
+            <label for="photos" class="font-semibold">Photos</label>
+            <div class="flex gap-5">
+                <x-input name="photos" id="photos" placeholder="http://" class="w-full"/>
+                <button type="button" class="border  border-border border-dotted rounded px-4 py-1 text-2xl text-center text-text-muted hover:text-text-primary duration-200 hover:border-text-secondary" >+</button>
             </div>
-            <x-button type="submit" variant="primary" class="col-span-2">Create Pet</x-button>
-            <x-button type="button" href="{{ route('pets.index') }}" variant="ghost" class="col-span-2 text-center">Cancel</x-button>
-        </form>
-    </x-card>
-    @endsection
-
-            
-                
-        
-                
-               
-                  
-            
-        
+            <p data-error class="text-error text-xs hidden"> </p>
+            <ul id="photos-list" class="mt-2 flex flex-col gap-2 text-xs px-2"></ul>
+        </div>
+        <x-button type="submit" variant="primary" class="col-span-2">Create Pet</x-button>
+        <x-button type="button" href="{{ route('pets.index') }}" variant="ghost" class="col-span-2 text-center">Cancel</x-button>
+    </form>
+</x-card>
+@push('scripts')
+    @vite(['resources/js/tags.ts', 'resources/js/photoUrls.ts'])
+@endpush
+@endsection    

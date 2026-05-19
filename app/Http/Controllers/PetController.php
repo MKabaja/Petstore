@@ -29,7 +29,7 @@ class PetController extends Controller
         $pets = $this->petService->findByStatus($status);
 
         $filteredPets = $search
-            ? array_filter($pets, fn ($pet) => str_contains($pet->name, $search))
+            ? array_filter($pets, fn ($pet) => str_contains(mb_strtolower($pet->name), mb_strtolower($search)))
             : $pets;
 
         $paginatedPets = collect($filteredPets)

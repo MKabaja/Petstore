@@ -21,7 +21,7 @@
             <x-card>
                 
                  <a class=" hover:scale-105 duration-200" href="{{ route('pets.show', $pet->id) }}">
-                    <img src="{{ $pet->photoUrls[0]?? '/images/placeholder.png' }}" onerror="this.src='/images/placeholder.png'" alt="{{ $pet->name }}" class="md:w-30 md:h-30 w-40 object-cover rounded mx-auto">
+                    <img src="{{$pet->photoUrls[0]?? '/images/placeholder.png' }}" onerror="this.src='/images/cat.png'" alt="{{ $pet->name }}" class="md:w-30 md:h-30 w-40 object-cover rounded mx-auto">
                 </a>
                 
                 <h3 class=" mx-auto text-2xl font-bold">{{ $pet->name }}</h3>
