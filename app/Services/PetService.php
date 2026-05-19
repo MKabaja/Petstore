@@ -50,24 +50,23 @@ class PetService
      */
     public function findByStatus(string $status): array
     {
-        return Cache::remember(
+        $raw = Cache::remember(
             self::CACHE_PREFIX.$status,
             config('petstore.cache_ttl'),
             fn () => $this->execute(function () use ($status) {
-
                 $response = $this->petStoreClient()->get('/pet/findByStatus', [
                     'status' => $status,
                 ]);
-
                 $this->ensureSuccessfulResponse($response);
 
-                return array_map(
-                    fn (array $petData) => $this->fromApiResponse($petData),
-                    $response->json(),
-                );
+                return $response->json();
             })
         );
 
+        return array_map(
+            fn (array $petData) => $this->fromApiResponse($petData),
+            $raw
+        );
     }
 
     public function findById(int $id): PetData
