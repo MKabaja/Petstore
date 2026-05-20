@@ -10,7 +10,7 @@ use Tests\TestCase;
 uses(TestCase::class);
 
 beforeEach(function () {
-
+    $this->withoutVite();
     $this->service = $this->mock(PetService::class);
 });
 
@@ -47,7 +47,8 @@ describe('index', function () {
             ->andThrow(PetStoreUnavailableException::class);
 
         $this->get(route('pets.index'))
-            ->assertRedirect()
+            ->assertOk()
+            ->assertViewIs('pets.index')
             ->assertSessionHas('error', 'Service unavailable. Please try again later.');
     });
 });

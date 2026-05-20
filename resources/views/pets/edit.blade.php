@@ -28,7 +28,7 @@
                 <label for="tags" class="font-semibold">Tags</label>
                 <div class="flex gap-5 relative">
                     <x-input name="tags" id="tags" placeholder="e.g. cute, small, friendly" class="w-full"/>
-                    <button type="button" class="border border-border border-dotted rounded px-4 py-1 text-2xl text-center text-text-muted hover:text-text-primary duration-200 hover:border-text-secondary">+</button>
+                    <button type="button" aria-label="Add tag" class="border border-border border-dotted rounded px-4 py-1 text-2xl text-center text-text-muted hover:text-text-primary duration-200 hover:border-text-secondary">+</button>
                 </div>
                 <p data-error class="hidden text-xs text-error"> </p>
                 <ul id="tags-list" class="grid grid-cols-5 gap-1">
@@ -40,7 +40,7 @@
             <label for="photos" class="font-semibold">Photos</label>
             <div class="flex gap-5">
                 <x-input name="photos" id="photos" placeholder="http://" class="w-full"/>
-                <button type="button" class="border border-border border-dotted rounded px-4 py-1 text-2xl text-center text-text-muted hover:text-text-primary duration-200 hover:border-text-secondary">+</button>
+                <button type="button" aria-label="Add photo URL" class="border border-border border-dotted rounded px-4 py-1 text-2xl text-center text-text-muted hover:text-text-primary duration-200 hover:border-text-secondary">+</button>
             </div>
             <p data-error class="hidden text-xs text-error"> </p>
             <ul id="photos-list" class="mt-2 flex flex-col gap-2 text-xs px-2">

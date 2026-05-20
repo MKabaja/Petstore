@@ -3,13 +3,13 @@
 @section('content')
 <x-card>
      <div>
-        <a href="{{ route('pets.index') }}" variant="ghost" class="border border-border px-1 py-1  rounded text-text-muted hover:text-text-secondary hover:border-text-secondary duration-200">Back</a>
+        <x-button href="{{ route('pets.index') }}" variant="ghost" class="border border-border px-1 py-1 rounded text-text-muted hover:text-text-secondary hover:border-text-secondary duration-200">Back</x-button>
         <x-delete-form :route="route('pets.destroy', $pet->id)"/>
     </div>
     <div class="flex flex-col md:grid md:grid-cols-2 ">
         <div>
             @foreach ($pet->photoUrls  as $url)
-                <img src="{{ $url }}" alt="{{ $pet->name }}" onerror="this.src='/images/placeholder.png'"class="w-60 h-60 object-cover rounded"> 
+                <img src="{{ $url }}" alt="{{ $pet->name }}" onerror="this.src='/images/placeholder.png'" class="w-60 h-60 object-cover rounded">
                 
             @endforeach
         </div>

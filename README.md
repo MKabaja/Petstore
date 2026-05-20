@@ -177,7 +177,7 @@ docker exec petstore_app composer install
 docker exec petstore_app php artisan key:generate
 ```
 
-Open [http://localhost:8080](http://localhost:8080).
+Open [http://localhost:8000](http://localhost:8000).
 
 ### Subsequent runs (after a break)
 

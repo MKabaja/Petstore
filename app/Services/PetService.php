@@ -43,7 +43,7 @@ use Illuminate\Support\Facades\Http;
  */
 class PetService
 {
-    private const CACHE_PREFIX = 'pets.';
+    private const CACHE_PREFIX = 'pets.v2.';
 
     /**
      * @return PetData[]

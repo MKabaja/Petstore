@@ -22,6 +22,7 @@ class IndexPetRequest extends FormRequest
         return [
             'status' => ['nullable', 'string', 'in:available,pending,sold'],
             'search' => ['nullable', 'string', 'max:100'],
+            'page'   => ['nullable', 'integer', 'min:1'],
         ];
     }
 

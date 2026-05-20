@@ -44,9 +44,15 @@ class PetController extends Controller
                 'total' => count($filteredPets),
             ]);
         } catch (PetStoreUnavailableException $e) {
-            return redirect()
-                ->route('pets.index')
-                ->with('error', $e->getMessage());
+            session()->flash('error', $e->getMessage());
+
+            return view('pets.index', [
+                'pets'   => collect(),
+                'status' => $status ?? 'available',
+                'search' => $search ?? null,
+                'page'   => $page ?? 1,
+                'total'  => 0,
+            ]);
         }
     }
 

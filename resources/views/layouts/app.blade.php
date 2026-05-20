@@ -7,6 +7,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.ts'])
 </head>
 <body class="min-h-screen  ">
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:px-4 focus:py-2 focus:bg-orange-500 focus:text-white">Skip to main content</a>
 
     <nav class="border-b border-gray-800 px-6 py-4">
         <div class="mx-auto max-w-5xl flex items-center justify-between">
@@ -21,7 +22,7 @@
         </div>
     </nav>
 
-    <main class="mx-auto max-w-5xl px-6 py-8 ">
+    <main id="main-content" class="mx-auto max-w-5xl px-6 py-8 ">
 
         @if(session('success'))
             <x-alert type="success" :message="session('success')" />

@@ -25,7 +25,7 @@ Aplikacja Laravel MVC integrująca się z publicznym [Swagger Petstore API](http
 
 ## Struktura folderów
 
-```
+```text
 app/
 ├── DTOs/
 │   └── PetData.php              # readonly DTO mapujące odpowiedź API
@@ -84,7 +84,7 @@ config/
 
 Każde żądanie przechodzi przez następującą ścieżkę:
 
-```
+```text
 Przeglądarka (request) → PetController → PetService → [cache] → Petstore API → widok Blade → Przeglądarka (response)
 ```
 
@@ -177,7 +177,7 @@ docker exec petstore_app composer install
 docker exec petstore_app php artisan key:generate
 ```
 
-Otwórz [http://localhost:8080](http://localhost:8080).
+Otwórz [http://localhost:8000](http://localhost:8000).
 
 ### Kolejne uruchomienia (po przerwie)
 

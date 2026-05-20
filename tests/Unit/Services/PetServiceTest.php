@@ -153,15 +153,15 @@ describe('create', function () {
         petService()->findByStatus('pending');
         petService()->findByStatus('sold');
 
-        expect(Cache::has('pets.available'))->toBeTrue();
-        expect(Cache::has('pets.pending'))->toBeTrue();
-        expect(Cache::has('pets.sold'))->toBeTrue();
+        expect(Cache::has('pets.v2.available'))->toBeTrue();
+        expect(Cache::has('pets.v2.pending'))->toBeTrue();
+        expect(Cache::has('pets.v2.sold'))->toBeTrue();
 
         petService()->create(petInput());
 
-        expect(Cache::has('pets.available'))->toBeFalse();
-        expect(Cache::has('pets.pending'))->toBeFalse();
-        expect(Cache::has('pets.sold'))->toBeFalse();
+        expect(Cache::has('pets.v2.available'))->toBeFalse();
+        expect(Cache::has('pets.v2.pending'))->toBeFalse();
+        expect(Cache::has('pets.v2.sold'))->toBeFalse();
     });
 
     it('throws PetStoreUnavailableException on connection error', function () {
@@ -201,15 +201,15 @@ describe('update', function () {
         petService()->findByStatus('pending');
         petService()->findByStatus('sold');
 
-        expect(Cache::has('pets.available'))->toBeTrue();
-        expect(Cache::has('pets.pending'))->toBeTrue();
-        expect(Cache::has('pets.sold'))->toBeTrue();
+        expect(Cache::has('pets.v2.available'))->toBeTrue();
+        expect(Cache::has('pets.v2.pending'))->toBeTrue();
+        expect(Cache::has('pets.v2.sold'))->toBeTrue();
 
         petService()->update([...petInput(), 'id' => 1]);
 
-        expect(Cache::has('pets.available'))->toBeFalse();
-        expect(Cache::has('pets.pending'))->toBeFalse();
-        expect(Cache::has('pets.sold'))->toBeFalse();
+        expect(Cache::has('pets.v2.available'))->toBeFalse();
+        expect(Cache::has('pets.v2.pending'))->toBeFalse();
+        expect(Cache::has('pets.v2.sold'))->toBeFalse();
     });
 
     it('throws PetNotFoundException when pet does not exist', function () {
@@ -257,15 +257,15 @@ describe('destroy', function () {
         petService()->findByStatus('pending');
         petService()->findByStatus('sold');
 
-        expect(Cache::has('pets.available'))->toBeTrue();
-        expect(Cache::has('pets.pending'))->toBeTrue();
-        expect(Cache::has('pets.sold'))->toBeTrue();
+        expect(Cache::has('pets.v2.available'))->toBeTrue();
+        expect(Cache::has('pets.v2.pending'))->toBeTrue();
+        expect(Cache::has('pets.v2.sold'))->toBeTrue();
 
         petService()->destroy(1);
 
-        expect(Cache::has('pets.available'))->toBeFalse();
-        expect(Cache::has('pets.pending'))->toBeFalse();
-        expect(Cache::has('pets.sold'))->toBeFalse();
+        expect(Cache::has('pets.v2.available'))->toBeFalse();
+        expect(Cache::has('pets.v2.pending'))->toBeFalse();
+        expect(Cache::has('pets.v2.sold'))->toBeFalse();
     });
 
     it('throws PetNotFoundException when pet does not exist', function () {
