@@ -1,0 +1,77 @@
+@theme {
+    --font-sans: ui-sans-serif, system-ui, sans-serif;
+    --font-mono: ui-monospace, monospace;
+
+    --color-base: #111110;
+    --color-surface: #1a1a18;
+    --color-card: #1a1a18;
+    --color-elevated: #222220;
+    --color-hover: #2e2e2b;
+    --color-border: #2e2e2b;
+
+    --color-accent: #f97316;
+    --color-accent-light: #fb923c;
+    --color-accent-hover: #ea6c0a;
+    --color-accent-muted: #7c3008;
+    --color-accent-subtle: #f9731611;
+
+    --color-text-primary: #f5f5f4;
+    --color-text-secondary: #a8a89e;
+    --color-text-muted: #6b6b65;
+    --color-text-accent: #f97316;
+
+    --color-available: #4ade80;
+    --color-available-bg: #14532d22;
+    --color-available-border: #14532d;
+
+    --color-pending: #fb923c;
+    --color-pending-bg: #78350f22;
+    --color-pending-border: #78350f;
+
+    --color-sold: #818cf8;
+    --color-sold-bg: #1e1b4b22;
+    --color-sold-border: #1e1b4b;
+
+    --color-unknown: #6b6b65;
+    --color-unknown-bg: #2e2e2b44;
+    --color-unknown-border: #3a3a37;
+
+    --color-success: #4ade80;
+    --color-success-bg: #14532d22;
+    --color-success-border: #14532d;
+
+    --color-error: #f87171;
+    --color-error-bg: #7f1d1d22;
+    --color-error-border: #7f1d1d;
+
+    --color-warning: #fbbf24;
+    --color-warning-bg: #78350f22;
+    --color-warning-border: #78350f;
+
+    --shadow-card:
+        0 1px 0 rgba(255, 255, 255, 0.03), 0 4px 16px rgba(0, 0, 0, 0.4);
+
+    --shadow-raised:
+        0 1px 0 rgba(255, 255, 255, 0.04), 0 8px 24px rgba(0, 0, 0, 0.5);
+
+    --shadow-glow:
+        0 0 0 1px rgba(249, 115, 22, 0.3), 0 0 20px rgba(249, 115, 22, 0.12);
+
+    --shadow-glow-strong:
+        0 0 0 1px rgba(249, 115, 22, 0.5), 0 0 40px rgba(249, 115, 22, 0.2);
+
+    --shadow-inner:
+        inset 0 2px 8px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.02);
+
+    --z-base: 0;
+    --z-dropdown: 10;
+    --z-header: 20;
+    --z-modal: 50;
+
+    --radius-card: 0.625rem;
+    --radius-btn: 0.5rem;
+    --radius-input: 0.5rem;
+    --radius-badge: 999px;
+    --radius-tag: 0.25rem;
+}

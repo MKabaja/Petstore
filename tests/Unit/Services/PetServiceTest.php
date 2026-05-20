@@ -36,6 +36,20 @@ beforeEach(function () {
 });
 
 describe('findByStatus', function () {
+    it('returns empty array when no pets match status', function () {
+        Http::fake([
+            '*/pet/findByStatus*' => Http::response([], 200),
+        ]);
+        $result = petService()->findByStatus('available');
+        expect($result)->toBeArray()->toBeEmpty();
+    });
+    it('throws PetStoreUnavailableException on server error', function () {
+        Http::fake([
+            '*/pet/findByStatus*' => Http::response([], 500),
+        ]);
+        expect(fn () => petService()->findByStatus('available'))
+            ->toThrow(PetStoreUnavailableException::class);
+    });
 
     it('returns array of PetData for valid status', function () {
         Http::fake([
@@ -76,6 +90,13 @@ describe('findByStatus', function () {
 });
 
 describe('findById', function () {
+    it('throws PetStoreUnavailableException on server error', function () {
+        Http::fake([
+            '*/pet/*' => Http::response([], 500),
+        ]);
+        expect(fn () => petService()->findById(1))
+            ->toThrow(PetStoreUnavailableException::class);
+    });
     it('returns PetData for valid id', function () {
         Http::fake([
             '*/pet/*' => Http::response(petApiResponse(), 200),
@@ -105,6 +126,13 @@ describe('findById', function () {
 });
 
 describe('create', function () {
+    it('throws PetStoreUnavailableException on server error', function () {
+        Http::fake([
+            '*/pet' => Http::response([], 500),
+        ]);
+        expect(fn () => petService()->create(petInput()))
+            ->toThrow(PetStoreUnavailableException::class);
+    });
     it('returns PetData after successful creation', function () {
         Http::fake([
             '*/pet' => Http::response(petApiResponse(), 200),
@@ -122,10 +150,18 @@ describe('create', function () {
         ]);
 
         petService()->findByStatus('available');
-        expect(Cache::has('pets.available'))->toBeTrue();
+        petService()->findByStatus('pending');
+        petService()->findByStatus('sold');
+
+        expect(Cache::has('pets.v2.available'))->toBeTrue();
+        expect(Cache::has('pets.v2.pending'))->toBeTrue();
+        expect(Cache::has('pets.v2.sold'))->toBeTrue();
 
         petService()->create(petInput());
-        expect(Cache::has('pets.available'))->toBeFalse();
+
+        expect(Cache::has('pets.v2.available'))->toBeFalse();
+        expect(Cache::has('pets.v2.pending'))->toBeFalse();
+        expect(Cache::has('pets.v2.sold'))->toBeFalse();
     });
 
     it('throws PetStoreUnavailableException on connection error', function () {
@@ -138,6 +174,13 @@ describe('create', function () {
 });
 
 describe('update', function () {
+    it('throws PetStoreUnavailableException on server error', function () {
+        Http::fake([
+            '*/pet' => Http::response([], 500),
+        ]);
+        expect(fn () => petService()->update([...petInput(), 'id' => 1]))
+            ->toThrow(PetStoreUnavailableException::class);
+    });
     it('returns PetData after successful update', function () {
         Http::fake([
             '*/pet' => Http::response(petApiResponse(), 200),
@@ -155,10 +198,18 @@ describe('update', function () {
         ]);
 
         petService()->findByStatus('available');
-        expect(Cache::has('pets.available'))->toBeTrue();
+        petService()->findByStatus('pending');
+        petService()->findByStatus('sold');
+
+        expect(Cache::has('pets.v2.available'))->toBeTrue();
+        expect(Cache::has('pets.v2.pending'))->toBeTrue();
+        expect(Cache::has('pets.v2.sold'))->toBeTrue();
 
         petService()->update([...petInput(), 'id' => 1]);
-        expect(Cache::has('pets.available'))->toBeFalse();
+
+        expect(Cache::has('pets.v2.available'))->toBeFalse();
+        expect(Cache::has('pets.v2.pending'))->toBeFalse();
+        expect(Cache::has('pets.v2.sold'))->toBeFalse();
     });
 
     it('throws PetNotFoundException when pet does not exist', function () {
@@ -180,6 +231,13 @@ describe('update', function () {
 });
 
 describe('destroy', function () {
+    it('throws PetStoreUnavailableException on server error', function () {
+        Http::fake([
+            '*/pet/*' => Http::response([], 500),
+        ]);
+        expect(fn () => petService()->destroy(1))
+            ->toThrow(PetStoreUnavailableException::class);
+    });
     it('returns void after successful deletion', function () {
         Http::fake([
             '*/pet/*' => Http::response(null, 200),
@@ -192,14 +250,22 @@ describe('destroy', function () {
     it('invalidates cache after deletion', function () {
         Http::fake([
             '*/pet/findByStatus*' => Http::response([petApiResponse()], 200),
-            '*/pet/*' => Http::response(petApiResponse(), 200),
+            '*/pet*' => Http::response(petApiResponse(), 200),
         ]);
 
         petService()->findByStatus('available');
-        expect(Cache::has('pets.available'))->toBeTrue();
+        petService()->findByStatus('pending');
+        petService()->findByStatus('sold');
+
+        expect(Cache::has('pets.v2.available'))->toBeTrue();
+        expect(Cache::has('pets.v2.pending'))->toBeTrue();
+        expect(Cache::has('pets.v2.sold'))->toBeTrue();
 
         petService()->destroy(1);
-        expect(Cache::has('pets.available'))->toBeFalse();
+
+        expect(Cache::has('pets.v2.available'))->toBeFalse();
+        expect(Cache::has('pets.v2.pending'))->toBeFalse();
+        expect(Cache::has('pets.v2.sold'))->toBeFalse();
     });
 
     it('throws PetNotFoundException when pet does not exist', function () {

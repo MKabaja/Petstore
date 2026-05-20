@@ -10,7 +10,7 @@ use Tests\TestCase;
 uses(TestCase::class);
 
 beforeEach(function () {
-
+    $this->withoutVite();
     $this->service = $this->mock(PetService::class);
 });
 
@@ -47,7 +47,8 @@ describe('index', function () {
             ->andThrow(PetStoreUnavailableException::class);
 
         $this->get(route('pets.index'))
-            ->assertRedirect()
+            ->assertOk()
+            ->assertViewIs('pets.index')
             ->assertSessionHas('error', 'Service unavailable. Please try again later.');
     });
 });
@@ -72,6 +73,16 @@ describe('show', function () {
         $this->get(route('pets.show', ['id' => 1]))
             ->assertRedirect(route('pets.index'))
             ->assertSessionHas('error', 'Pet not found.');
+    });
+    it('shows error flash when service unavailable', function () {
+        $this->service->shouldReceive('findById')
+            ->once()
+            ->with(1)
+            ->andThrow(PetStoreUnavailableException::class);
+
+        $this->get(route('pets.show', ['id' => 1]))
+            ->assertRedirect(route('pets.index'))
+            ->assertSessionHas('error', 'Service unavailable. Please try again later.');
     });
 });
 
@@ -99,6 +110,15 @@ describe('store', function () {
         $this->post(route('pets.store'), [])
             ->assertSessionHasErrors(['name', 'status']);
     });
+    it('shows error flash when service unavailable', function () {
+        $this->service->shouldReceive('create')
+            ->once()
+            ->andThrow(PetStoreUnavailableException::class);
+
+        $this->post(route('pets.store'), petInput())
+            ->assertRedirect(route('pets.index'))
+            ->assertSessionHas('error', 'Service unavailable. Please try again later.');
+    });
 });
 
 describe('edit', function () {
@@ -123,6 +143,16 @@ describe('edit', function () {
         $this->get(route('pets.edit', ['id' => 1]))
             ->assertRedirect(route('pets.index'))
             ->assertSessionHas('error', 'Pet not found.');
+    });
+    it('shows error flash when service unavailable', function () {
+        $this->service->shouldReceive('findById')
+            ->once()
+            ->with(1)
+            ->andThrow(PetStoreUnavailableException::class);
+
+        $this->get(route('pets.edit', ['id' => 1]))
+            ->assertRedirect(route('pets.index'))
+            ->assertSessionHas('error', 'Service unavailable. Please try again later.');
     });
 });
 
@@ -159,6 +189,16 @@ describe('update', function () {
         $this->put(route('pets.update', ['id' => 1]), [])
             ->assertSessionHasErrors(['name', 'status']);
     });
+    it('shows error flash when service unavailable', function () {
+        $this->service->shouldReceive('update')
+            ->once()
+            ->with(['id' => 1, ...petInput()])
+            ->andThrow(PetStoreUnavailableException::class);
+
+        $this->put(route('pets.update', ['id' => 1]), petInput())
+            ->assertRedirect(route('pets.index'))
+            ->assertSessionHas('error', 'Service unavailable. Please try again later.');
+    });
 
 });
 
@@ -181,5 +221,15 @@ describe('destroy', function () {
         $this->delete(route('pets.destroy', ['id' => 1]))
             ->assertRedirect(route('pets.index'))
             ->assertSessionHas('error', 'Pet not found.');
+    });
+    it('shows error flash when service unavailable', function () {
+        $this->service->shouldReceive('destroy')
+            ->once()
+            ->with(1)
+            ->andThrow(PetStoreUnavailableException::class);
+
+        $this->delete(route('pets.destroy', ['id' => 1]))
+            ->assertRedirect(route('pets.index'))
+            ->assertSessionHas('error', 'Service unavailable. Please try again later.');
     });
 });

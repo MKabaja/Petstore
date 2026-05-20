@@ -1,58 +1,264 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Petstore
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A Laravel MVC application integrating with the public [Swagger Petstore API](https://petstore.swagger.io/). Provides full CRUD for the `pet` resource through a Blade-rendered web interface. No own database — all data comes from the external API, with a file-based cache layer to reduce redundant requests.
 
-## About Laravel
+![Tests](https://github.com/MKabaja/Petstore/actions/workflows/tests.yml/badge.svg)
+![PHPStan](https://github.com/MKabaja/Petstore/actions/workflows/phpstan.yml/badge.svg)
+![Pint](https://github.com/MKabaja/Petstore/actions/workflows/pint.yml/badge.svg)
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+> Polish version of this README is available in [README-pl.md](README-pl.md).
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+---
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Stack
 
-## Learning Laravel
+| Layer | Technology |
+|---|---|
+| Backend | PHP 8.3, Laravel 13, Blade templates |
+| Caching | File cache driver (Laravel built-in) |
+| Frontend | Tailwind CSS v4, TypeScript, Vite |
+| Testing | Pest |
+| Infrastructure | Docker (PHP-FPM + Nginx), WSL2 |
+| Code quality | PHPStan level 6 + Larastan, Laravel Pint |
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+---
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Folder structure
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+```
+app/
+├── DTOs/
+│   └── PetData.php              # readonly DTO mapping API response
+├── Enums/
+│   ├── PetStatus.php            # available | pending | sold | unknown
+│   └── PetStoreError.php        # error message definitions
+├── Exceptions/
+│   ├── PetStoreException.php    # abstract base (extends RuntimeException)
+│   ├── PetNotFoundException.php
+│   ├── PetStoreUnavailableException.php
+│   └── PetStoreApiException.php
+├── Http/
+│   ├── Controllers/
+│   │   └── PetController.php    # resource controller, delegates to PetService
+│   └── Requests/
+│       ├── PetRequest.php       # validation for store/update
+│       └── IndexPetRequest.php  # validation for index filters
+└── Services/
+    └── PetService.php           # all API communication + cache logic
 
-## Agentic Development
+resources/
+├── js/
+│   ├── dynamicList.ts           # shared abstraction for dynamic input lists
+│   ├── tags.ts                  # tag list — uses createDynamicList
+│   ├── photoUrls.ts             # photo URL list — uses createDynamicList
+│   └── formErrorHandler.ts     # inline error display utility
+└── views/
+    ├── layouts/
+    │   └── app.blade.php
+    ├── components/
+    │   ├── alert.blade.php
+    │   ├── badge.blade.php
+    │   ├── button.blade.php
+    │   ├── card.blade.php
+    │   ├── delete-form.blade.php
+    │   └── input.blade.php
+    └── pets/
+        ├── index.blade.php      # listing with filters and pagination
+        ├── show.blade.php
+        ├── create.blade.php
+        └── edit.blade.php
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+tests/
+├── Unit/Services/
+│   └── PetServiceTest.php
+└── Feature/Http/Controllers/
+    └── PetControllerTest.php
 
-```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+config/
+└── petstore.php                 # PETSTORE_* env vars
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+---
 
-## Contributing
+## Data flow
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Every request follows this path:
 
-## Code of Conduct
+```
+Browser (request) → PetController → PetService → [cache check] → Petstore API → Blade view → Browser (response)
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+**Read requests** (`index`, `show`):
+1. Controller receives request, delegates to `PetService`
+2. Service checks file cache (`pets.available`, `pets.pending`, `pets.sold`)
+3. **Cache hit** — returns cached data immediately, no API call
+4. **Cache miss** — calls Petstore API, maps response to `PetData[]`, stores in cache
+5. Controller passes DTOs to Blade view
 
-## Security Vulnerabilities
+**Write requests** (`store`, `update`, `destroy`):
+1. `PetRequest` validates form data before reaching the controller
+2. Controller delegates to `PetService`
+3. Service calls Petstore API
+4. On success — invalidates all three cache keys (`pets.available`, `pets.pending`, `pets.sold`)
+5. Controller redirects with flash message
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+**Error handling:**
+- `PetNotFoundException` — caught per-method in the controller (different redirect per context)
+- `PetStoreUnavailableException`, `PetStoreApiException` — caught by global handler in `bootstrap/app.php`, redirects back with error flash
 
-## License
+---
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## Data flow diagram
+
+```mermaid
+flowchart TD
+    Browser([Browser])
+
+    Browser -->|GET /pets| Controller
+
+    subgraph App [Laravel App]
+        Controller[PetController]
+        Service[PetService]
+        Cache[(File Cache)]
+
+        Controller --> Service
+        Service -->|findByStatus| Cache
+        Cache -->|hit| Service
+        Cache -->|miss| API
+        API -->|response| Cache
+        API -->|response| Service
+        Service --> Controller
+    end
+
+    subgraph Mutations [Write operations — store / update / destroy]
+        MW[PetController]
+        MS[PetService]
+        MW --> MS
+        MS -->|API call| API2[Petstore API]
+        API2 --> MS
+        MS -->|invalidateCache| Cache2[(File Cache)]
+        MS --> MW
+    end
+
+    API[Petstore API]
+    Controller -->|view + PetData| Browser
+    MW -->|redirect + flash| Browser
+```
+
+---
+
+## Installation & running
+
+### First run (new machine / fresh clone)
+
+```bash
+git clone https://github.com/MKabaja/Petstore.git
+cd Petstore
+cp .env.example .env
+```
+
+Check your UID:
+
+```bash
+id
+```
+
+If it differs from `1000`, update `.env`:
+
+```env
+WWWUSER=your_uid
+WWWGROUP=your_gid
+```
+
+```bash
+docker compose build --no-cache
+docker compose up -d
+docker exec petstore_app composer install
+docker exec petstore_app php artisan key:generate
+```
+
+Open [http://localhost:8000](http://localhost:8000).
+
+### Subsequent runs (after a break)
+
+```bash
+docker compose up -d
+```
+
+### After pulling changes (composer.json updated)
+
+```bash
+docker exec petstore_app composer install
+```
+
+### Reset — when permissions break
+
+```bash
+sudo rm -rf vendor storage/framework/cache/data/*
+docker compose down --rmi all
+docker compose build --no-cache
+docker compose up -d
+docker exec petstore_app composer install
+docker exec petstore_app php artisan cache:clear
+```
+
+---
+
+## Environment variables
+
+All Petstore-specific variables live in `config/petstore.php` and are read via `config()` — never via `env()` directly in application code.
+
+| Variable | Default | Description |
+|---|---|---|
+| `PETSTORE_BASE_URL` | `https://petstore.swagger.io/v2` | Base URL of the external API |
+| `PETSTORE_API_KEY` | `special-key` | API key sent as `api_key` header |
+| `PETSTORE_CACHE_TTL` | `300` | Cache TTL in seconds |
+| `PETSTORE_TIMEOUT` | `10` | HTTP client timeout (seconds) |
+| `PETSTORE_RETRY` | `2` | Number of retries on connection failure |
+| `CACHE_STORE` | `file` | Laravel cache driver |
+| `WWWUSER` | `1000` | Host UID — must match output of `id` on WSL/Linux |
+| `WWWGROUP` | `1000` | Host GID |
+
+---
+
+## Composer scripts
+
+| Command | What it does |
+|---|---|
+| `composer test` | Clears config cache and runs the test suite |
+| `composer lint` | Runs Laravel Pint (code style) |
+| `composer analyse` | Runs PHPStan level 6 |
+| `composer check` | Runs lint + analyse + tests in sequence |
+
+## Running tests
+
+```bash
+composer test
+```
+
+The test suite uses `CACHE_STORE=array` (configured in `phpunit.xml`) so no real files are written during testing.
+
+**Unit tests** — `Tests\Unit\Services\PetServiceTest`
+
+Test the service layer in isolation. `Http::fake()` intercepts all outgoing HTTP requests — no real API calls are made. Covers all five public methods and verifies cache hit behaviour via `Http::assertSentCount(1)`.
+
+**Feature tests** — `Tests\Feature\Http\Controllers\PetControllerTest`
+
+Test the full HTTP layer: routing → controller → response. `PetService` is replaced with a Mockery mock via `$this->mock()`. Covers redirects, flash messages, and form validation errors.
+
+---
+
+## Testing with real data — photo URLs
+
+When creating or editing a pet, the photo URL must be a **direct link to an image file**. Google Images URLs will not work — the browser displays them, but they are not direct image addresses.
+
+Use these placeholder services for testing:
+
+- `https://placedog.net/500/500`
+- `https://placekitten.com/500/500`
+
+You can change the numbers in the URL to get different images — for example `https://placedog.net/300/400` or `https://placekitten.com/200/200`.
+
+Alternatively, right-click any image in the browser → **Copy image address** to get a direct URL.
+
+> **Note:** The Petstore API is public — anyone can add pets with broken or dead image links. This is expected behaviour. The app handles it gracefully with an `onerror` fallback to a local placeholder image stored in `public/images/`.
