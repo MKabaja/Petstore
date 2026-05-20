@@ -47,11 +47,11 @@ class PetController extends Controller
             session()->flash('error', $e->getMessage());
 
             return view('pets.index', [
-                'pets'   => collect(),
+                'pets' => collect(),
                 'status' => $status ?? 'available',
                 'search' => $search ?? null,
-                'page'   => $page ?? 1,
-                'total'  => 0,
+                'page' => $page ?? 1,
+                'total' => 0,
             ]);
         }
     }
