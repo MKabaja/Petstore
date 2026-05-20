@@ -1,60 +1,58 @@
+import { createErrorHandler } from "./formErrorHandler";
+
 interface DynamicListOptions {
     containerId: string;
     inputName: string;
     validate: (value: string) => string | null;
+    existingDataKey?: string;
 }
 
 export function createDynamicList(options: DynamicListOptions): void {
     const container = document.getElementById(options.containerId);
-    const input = container?.querySelector<HTMLInputElement>("input");
-    const list = container?.querySelector<HTMLUListElement>("ul");
-    const button = container?.querySelector<HTMLButtonElement>("button");
-    const errorElement =
-        container?.querySelector<HTMLParagraphElement>("[data-error]");
 
-    if (!container || !input || !list || !button || !errorElement) {
+    if (!container) {
+        console.error(`Container with id "${options.containerId}" not found.`);
+        return;
+    }
+
+    const errorElement =
+        container.querySelector<HTMLParagraphElement>("[data-error]")!;
+    const input = container.querySelector<HTMLInputElement>("input")!;
+    const list = container.querySelector<HTMLUListElement>("ul")!;
+    const button = container.querySelector<HTMLButtonElement>("button")!;
+
+    if (!input || !list || !button || !errorElement) {
         console.error(
             `Container with id ${options.containerId} is not properly structured.`,
         );
         return;
     }
-    function handleClick() {
-        const value = input!.value.trim();
-        const error = options.validate(value ?? "");
+
+    const errorHandler = createErrorHandler(errorElement, input);
+
+    function checkInput() {
+        const value = input.value.trim();
+        const error = options.validate(value);
 
         if (error) {
-            return { ok: false, error };
+            return { ok: false as const, error };
         }
-        return { ok: true, value: value };
+
+        return { ok: true as const, value: value };
     }
 
     button.addEventListener("click", () => {
-        const result = handleClick();
+        const result = checkInput();
         if (!result.ok && result.error) {
-            showError(result.error);
+            errorHandler.show(result.error);
         } else if (result.ok && result.value) {
-            clearError();
+            errorHandler.clear();
             addItem(result.value);
             input.value = "";
         }
     });
 
-    function showError(message: string) {
-        if (errorElement && input) {
-            errorElement.textContent = message;
-            errorElement.classList.remove("hidden");
-            input.classList.add("border-error");
-        }
-    }
-    function clearError() {
-        if (errorElement && input) {
-            errorElement.textContent = "";
-            errorElement.classList.add("hidden");
-            input.classList.remove("border-error");
-        }
-    }
     function addItem(value: string) {
-        if (!list) return;
         const li = createLI(value);
         const btn = createBtn();
         const hiddenInput = createHiddenInput(value);
@@ -97,5 +95,15 @@ export function createDynamicList(options: DynamicListOptions): void {
         hiddenInput.value = value;
         return hiddenInput;
     }
-    export { showError, clearError };
+    if (options.existingDataKey) {
+        const raw = container.dataset[options.existingDataKey];
+        if (raw) {
+            try {
+                const items: string[] = JSON.parse(raw);
+                items.forEach((value) => addItem(value));
+            } catch {
+                console.error(`Failed to parse ${options.existingDataKey}`);
+            }
+        }
+    }
 }

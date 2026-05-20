@@ -4,6 +4,7 @@ document.addEventListener("DOMContentLoaded", () => {
     createDynamicList({
         containerId: "tags-container",
         inputName: "tags[]",
+        existingDataKey: "tags",
         validate: (value) => {
             if (!value) {
                 return "Tag cannot be empty.";

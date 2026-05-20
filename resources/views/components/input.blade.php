@@ -7,7 +7,7 @@
 
     <input
         name="{{ $name }}"
-        value="{{ $value ?? old($name) }}"
+        value="{{ $value ?? (is_string(old($name)) ? old($name) : '') }}"
         placeholder="{{ $placeholder }}"
         
         {{ $attributes->merge(['class' => 'bg-surface px-4 py-2 rounded border border-border ']) }}

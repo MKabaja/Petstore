@@ -4,6 +4,7 @@ document.addEventListener("DOMContentLoaded", () => {
     createDynamicList({
         containerId: "photos-container",
         inputName: "photo_urls[]",
+        existingDataKey: "photoUrls",
         validate: (value) => {
             try {
                 new URL(value);

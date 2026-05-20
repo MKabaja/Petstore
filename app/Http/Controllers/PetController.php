@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Exceptions\PetNotFoundException;
+use App\Exceptions\PetStoreUnavailableException;
 use App\Http\Requests\IndexPetRequest;
 use App\Http\Requests\PetRequest;
 use App\Services\PetService;
@@ -17,33 +18,36 @@ class PetController extends Controller
         private readonly PetService $petService,
     ) {}
 
-    public function index(IndexPetRequest $request): View
+    public function index(IndexPetRequest $request): View|RedirectResponse
     {
-        $validated = $request->validated();
+        try {
+            $validated = $request->validated();
+            $status = $validated['status'] ?? 'available';
+            $search = $validated['search'] ?? null;
 
-        $status = $validated['status'] ?? 'available';
-        $search = $validated['search'] ?? null;
+            $page = $request->integer('page', 1);
+            $pets = $this->petService->findByStatus($status);
 
-        $page = $request->integer('page', 1);
+            $filteredPets = $search
+                ? array_filter($pets, fn ($pet) => str_contains(mb_strtolower($pet->name), mb_strtolower($search)))
+                : $pets;
 
-        $pets = $this->petService->findByStatus($status);
+            $paginatedPets = collect($filteredPets)
+                ->values()
+                ->forPage($page, 20);
 
-        $filteredPets = $search
-            ? array_filter($pets, fn ($pet) => str_contains(mb_strtolower($pet->name), mb_strtolower($search)))
-            : $pets;
-
-        $paginatedPets = collect($filteredPets)
-            ->values()
-            ->forPage($page, 20);
-
-        return view('pets.index', [
-            'pets' => $paginatedPets,
-            'status' => $status,
-            'search' => $search,
-
-            'page' => $page,
-            'total' => count($filteredPets),
-        ]);
+            return view('pets.index', [
+                'pets' => $paginatedPets,
+                'status' => $status,
+                'search' => $search,
+                'page' => $page,
+                'total' => count($filteredPets),
+            ]);
+        } catch (PetStoreUnavailableException $e) {
+            return redirect()
+                ->route('pets.index')
+                ->with('error', $e->getMessage());
+        }
     }
 
     public function create(): View
@@ -53,13 +57,21 @@ class PetController extends Controller
 
     public function store(PetRequest $request): RedirectResponse
     {
-        $validated = $request->validated();
+        try {
+            $validated = $request->validated();
 
-        $this->petService->create($validated);
+            $this->petService->create($validated);
 
-        return redirect()
-            ->route('pets.index')
-            ->with('success', 'Pet created successfully.');
+            return redirect()
+                ->route('pets.index')
+                ->with('success', 'Pet created successfully.');
+
+        } catch (PetStoreUnavailableException $e) {
+            return redirect()
+                ->route('pets.index')
+                ->with('error', $e->getMessage());
+
+        }
     }
 
     public function show(string $id): View|RedirectResponse
@@ -68,7 +80,7 @@ class PetController extends Controller
             $pet = $this->petService->findById((int) $id);
 
             return view('pets.show', ['pet' => $pet]);
-        } catch (PetNotFoundException $e) {
+        } catch (PetNotFoundException|PetStoreUnavailableException $e) {
             return redirect()
                 ->route('pets.index')
                 ->with('error', $e->getMessage());
@@ -81,7 +93,7 @@ class PetController extends Controller
             $pet = $this->petService->findById((int) $id);
 
             return view('pets.edit', ['pet' => $pet]);
-        } catch (PetNotFoundException $e) {
+        } catch (PetNotFoundException|PetStoreUnavailableException $e) {
             return redirect()
                 ->route('pets.index')
                 ->with('error', $e->getMessage());
@@ -98,7 +110,7 @@ class PetController extends Controller
             return redirect()
                 ->route('pets.show', ['id' => $id])
                 ->with('success', 'Pet updated successfully.');
-        } catch (PetNotFoundException $e) {
+        } catch (PetNotFoundException|PetStoreUnavailableException $e) {
             return redirect()
                 ->route('pets.index')
                 ->with('error', $e->getMessage());
@@ -112,7 +124,7 @@ class PetController extends Controller
 
             return redirect()->route('pets.index')
                 ->with('success', 'Pet deleted successfully.');
-        } catch (PetNotFoundException $e) {
+        } catch (PetNotFoundException|PetStoreUnavailableException $e) {
             return redirect()->route('pets.index')
                 ->with('error', $e->getMessage());
         }

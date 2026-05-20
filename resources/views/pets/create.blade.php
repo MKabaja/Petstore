@@ -3,11 +3,12 @@
 @section('content')
 <x-card>
     <h2 class="text-3xl font-bold mb-6 text-center">Add New Pet</h2>
-    <form method="POST" action="{{ route('pets.store') }}" class="md:grid  flex flex-col md:grid-cols-2 gap-4">
+    <form id="create-pet-form" data-pet-form method="POST" action="{{ route('pets.store') }}" class="md:grid  flex flex-col md:grid-cols-2 gap-4">
         @csrf
         <div class="col-span-1 space-y-5">
             <div class="flex flex-col gap-2">
-                <x-input label="Name" name="name" id="name" placeholder="Pet name" required class="w-full"/>
+                <x-input label="Name" name="name" id="name" placeholder="Pet name"  class="w-full" required/>
+                
                 <x-input label="Category" name="category_name" id="category-name" placeholder="Pet category" class="w-full"/>
             </div>
             <div class="flex flex-col gap-2">
